@@ -1,0 +1,38 @@
+---
+import { formatearFechaCorta, formatearFecha, type Evento } from '../lib/eventos';
+
+interface Props {
+  evento: Evento;
+}
+
+const { evento } = Astro.props;
+const { titulo, resumen, imagen, imagen_alt, fecha, lugar, categoria } = evento.data;
+---
+
+<a class="tarjeta-evento" href={`/eventos/${evento.id}/`}>
+  <div class="tarjeta-evento__media">
+    <img
+      src={imagen}
+      alt={imagen_alt}
+      width="1200"
+      height="900"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="tarjeta-evento__categoria">{categoria}</span>
+  </div>
+  <div class="tarjeta-evento__cuerpo">
+    <span class="tarjeta-evento__fecha">
+      <time datetime={fecha.toISOString().slice(0, 10)}>
+        {formatearFechaCorta(fecha)}
+      </time>
+      · {lugar}
+    </span>
+    <h3 class="tarjeta-evento__titulo">{titulo}</h3>
+    <p class="tarjeta-evento__resumen">{resumen}</p>
+    <div class="tarjeta-evento__pie">
+      <span>{formatearFecha(fecha)}</span>
+      <span class="tarjeta-evento__flecha" aria-hidden="true">↗</span>
+    </div>
+  </div>
+</a>

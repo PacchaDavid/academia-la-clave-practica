@@ -1,0 +1,93 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EventCard from '../../components/EventCard.astro';
+import { getCollection } from 'astro:content';
+import {
+  esPasado,
+  formatearFecha,
+  porFechaAscendente,
+  porFechaDescendente,
+} from '../../lib/eventos';
+
+const eventos = await getCollection(
+  'eventos',
+  ({ data }) => import.meta.env.DEV || !data.borrador,
+);
+
+const proximos = eventos
+  .filter((evento) => !esPasado(evento.data.fecha))
+  .sort(porFechaAscendente);
+
+const pasados = eventos
+  .filter((evento) => esPasado(evento.data.fecha))
+  .sort(porFechaDescendente);
+---
+
+<BaseLayout
+  titulo="Eventos"
+  descripcion="Agenda de conciertos, clases magistrales, talleres y audiciones de la Academia La Clave en Valencia."
+  imagen="/images/eventos/concierto-de-invierno.jpg"
+>
+  <section class="seccion">
+    <div class="wrap">
+      <p class="antetitulo">Agenda 2026 – 2027</p>
+      <h1 class="display" style="max-width: 18ch;">Lo que suena este curso.</h1>
+      <p class="entradilla" style="margin-top: 1.5rem;">
+        Conciertos, talleres y audiciones. La mayoría son abiertos al barrio:
+        consulta el aforo y la entrada en cada ficha.
+      </p>
+
+      <div class="cabecera-seccion" style="margin-top: clamp(3rem, 6vw, 4.5rem);">
+        <div class="cabecera-seccion__texto">
+          <h2 class="titulo-seccion">Próximas citas</h2>
+        </div>
+        <p class="texto-tenue" style="font-size: 0.85rem;">
+          {proximos.length} {proximos.length === 1 ? 'evento programado' : 'eventos programados'}
+        </p>
+      </div>
+
+      {proximos.length > 0 ? (
+        <div class="rejilla-eventos">
+          {proximos.map((evento) => (
+            <EventCard evento={evento} />
+          ))}
+        </div>
+      ) : (
+        <p class="entradilla">
+          No hay fechas publicadas ahora mismo. Escríbenos y te avisamos en
+          cuanto abramos la próxima convocatoria.
+        </p>
+      )}
+    </div>
+  </section>
+
+  {pasados.length > 0 && (
+    <section class="seccion seccion--ajustada seccion--papel">
+      <div class="wrap">
+        <div class="cabecera-seccion">
+          <div class="cabecera-seccion__texto">
+            <p class="antetitulo">Archivo</p>
+            <h2 class="titulo-seccion">Ya ha pasado</h2>
+          </div>
+        </div>
+
+        <div class="lista-eventos">
+          {pasados.map((evento) => (
+            <a class="fila-evento" href={`/eventos/${evento.id}/`}>
+              <span class="fila-evento__fecha">
+                <time datetime={evento.data.fecha.toISOString().slice(0, 10)}>
+                  {formatearFecha(evento.data.fecha)}
+                </time>
+              </span>
+              <span>
+                <span class="fila-evento__titulo">{evento.data.titulo}</span>
+                <span class="fila-evento__lugar">{evento.data.lugar}</span>
+              </span>
+              <span class="fila-evento__flecha" aria-hidden="true">→</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+</BaseLayout>
