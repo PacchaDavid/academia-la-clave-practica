@@ -47,6 +47,7 @@ src/
 ├── layouts/BaseLayout   Metadatos, fuentes y estructura del documento
 ├── lib/eventos.ts       Formateo de fechas y orden próximo/pasado
 ├── pages/
+│   ├── admin/index.astro Página mínima que monta Decap
 │   ├── index.astro
 │   ├── clases.astro
 │   ├── profesores.astro
@@ -58,7 +59,7 @@ src/
 │       └── [slug].astro Ficha generada por evento
 └── styles/global.css    Tokens, componentes y responsive
 public/
-├── admin/               Panel de Decap (index.html + config.yml)
+├── admin/config.yml     Colección y backend de Decap
 ├── images/              Fotos locales
 └── favicon.svg, robots.txt
 netlify.toml             Build, publish, cabeceras y Node

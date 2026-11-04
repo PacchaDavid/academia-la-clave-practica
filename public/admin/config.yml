@@ -80,8 +80,6 @@ collections:
       - label: Imagen
         name: imagen
         widget: image
-        media_folder: ''
-        public_folder: ''
         hint: Se guarda en public/images/eventos. Usa formato horizontal (4:3).
 
       - label: Texto alternativo de la imagen
