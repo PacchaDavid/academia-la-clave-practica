@@ -1,0 +1,65 @@
+---
+const enlaces = [
+  { href: '/clases/', etiqueta: 'Clases' },
+  { href: '/eventos/', etiqueta: 'Eventos' },
+  { href: '/profesores/', etiqueta: 'Profesores' },
+  { href: '/contacto/', etiqueta: 'Contacto' },
+];
+
+const ruta = Astro.url.pathname;
+const estaActivo = (href: string) =>
+  ruta === href || (href !== '/' && ruta.startsWith(href));
+---
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="marca" href="/" aria-label="Academia La Clave, inicio">
+      <svg class="marca__icono" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+        <circle cx="20" cy="20" r="19" fill="#b0452a"></circle>
+        <g stroke="#f6f0e5" stroke-width="0.9" opacity="0.45">
+          <line x1="8" y1="15" x2="32" y2="15"></line>
+          <line x1="8" y1="20" x2="32" y2="20"></line>
+          <line x1="8" y1="25" x2="32" y2="25"></line>
+        </g>
+        <ellipse cx="17.5" cy="24.5" rx="4.2" ry="3.1" transform="rotate(-18 17.5 24.5)" fill="#f6f0e5"></ellipse>
+        <path d="M21.2 23.4V11.6c2.6 1.4 4.1 3.2 4.6 5.4" fill="none" stroke="#f6f0e5" stroke-width="1.8" stroke-linecap="round"></path>
+      </svg>
+      <span class="marca__texto">
+        <span class="marca__nombre">La Clave</span>
+        <span class="marca__sub">Academia musical</span>
+      </span>
+    </a>
+
+    <nav class="nav nav-desktop" aria-label="Navegación principal">
+      {enlaces.map((enlace) => (
+        <a
+          class="nav__enlace"
+          href={enlace.href}
+          aria-current={estaActivo(enlace.href) ? 'page' : undefined}
+        >
+          {enlace.etiqueta}
+        </a>
+      ))}
+    </nav>
+
+    <div class="header-acciones">
+      <a class="btn btn--terracota btn--sm header-cta" href="/contacto/">
+        Reserva tu clase
+        <span class="btn__flecha" aria-hidden="true">→</span>
+      </a>
+
+      <details class="menu-movil">
+        <summary>Menú</summary>
+        <nav class="menu-movil__panel" aria-label="Navegación móvil">
+          <a href="/">Inicio</a>
+          {enlaces.map((enlace) => (
+            <a href={enlace.href} aria-current={estaActivo(enlace.href) ? 'page' : undefined}>
+              {enlace.etiqueta}
+            </a>
+          ))}
+          <a class="btn btn--terracota btn--sm" href="/contacto/">Reserva tu clase</a>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,262 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import EventCard from '../components/EventCard.astro';
+import { getCollection } from 'astro:content';
+import {
+  esPasado,
+  formatearFechaCorta,
+  porFechaAscendente,
+} from '../lib/eventos';
+
+const eventos = await getCollection(
+  'eventos',
+  ({ data }) => import.meta.env.DEV || !data.borrador,
+);
+
+const proximos = eventos
+  .filter((evento) => !esPasado(evento.data.fecha))
+  .sort(porFechaAscendente);
+
+const siguiente = proximos[0];
+const proximosTres = proximos.slice(0, 3);
+
+const disciplinas = [
+  'Piano',
+  'Guitarra',
+  'Cuerdas',
+  'Viento',
+  'Canto',
+  'Producción',
+  'Lenguaje musical',
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'MusicSchool',
+  name: 'Academia La Clave',
+  description:
+    'Escuela de música en Valencia con clases de instrumento, lenguaje musical y una agenda de conciertos abierta al barrio.',
+  foundingDate: '1998',
+  email: 'hola@laclave.example',
+  telephone: '+34960000000',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Calle del Compás, 14',
+    postalCode: '46001',
+    addressLocality: 'Valencia',
+    addressCountry: 'ES',
+  },
+};
+---
+
+<BaseLayout
+  titulo="Academia La Clave"
+  descripcion="Escuela de música en el centro de Valencia desde 1998. Clases de piano, guitarra, cuerdas, viento, canto y producción, con una agenda de conciertos abierta al barrio."
+  imagen="/images/hero-sala.jpg"
+>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+  <section class="hero">
+    <div class="wrap hero__grid">
+      <div class="hero__copiar">
+        <p class="antetitulo">Escuela de música · Valencia, desde 1998</p>
+        <h1 class="display hero__titulo">
+          La música se aprende <em>tocando</em>.
+        </h1>
+        <p class="entradilla">
+          Clases de instrumento, lenguaje musical y escenario. Grupos pequeños,
+          profesores en activo y una agenda de conciertos donde de verdad se
+          aprende el oficio.
+        </p>
+        <div class="hero__acciones">
+          <a class="btn btn--terracota" href="/clases/">
+            Conoce las clases
+            <span class="btn__flecha" aria-hidden="true">→</span>
+          </a>
+          <a class="enlace-flecha" href="/eventos/">
+            Ver la agenda
+            <span class="btn__flecha" aria-hidden="true">→</span>
+          </a>
+        </div>
+        <p class="hero__nota">
+          Primera clase de prueba gratuita · Plazas limitadas por grupo
+        </p>
+      </div>
+
+      <div class="hero__media">
+        <div class="hero__marco">
+          <img
+            src="/images/hero-sala.jpg"
+            alt="Sala de ensayo de la academia con guitarras, un teclado y luz de tarde entrando por la ventana"
+            width="2000"
+            height="1333"
+            fetchpriority="high"
+          />
+        </div>
+        {siguiente && (
+          <a class="hero__etiqueta" href={`/eventos/${siguiente.id}/`}>
+            <span>
+              Próximo evento · {formatearFechaCorta(siguiente.data.fecha)}
+              <strong>{siguiente.data.titulo}</strong>
+            </span>
+          </a>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <div class="cinta">
+    <div class="wrap">
+      <ul class="cinta__lista">
+        {disciplinas.map((disciplina) => (
+          <li>{disciplina}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+  <section class="seccion">
+    <div class="wrap duo">
+      <div class="duo__media">
+        <img
+          src="/images/sala-estudio.jpg"
+          alt="Mesa de mezclas, monitores y guitarras colgadas en el estudio de grabación de la academia"
+          width="1200"
+          height="800"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <div class="duo__texto">
+        <p class="antetitulo">La academia</p>
+        <h2 class="titulo-seccion">
+          Un conservatorio de barrio con ambición de escenario.
+        </h2>
+        <p>
+          Ocupamos una casa antigua en el centro de Valencia: siete aulas, una
+          sala de cámara, dos estudios y un auditorio pequeño. Lo suficiente
+          para que cada alumno tenga su instrumento, su hora y su público.
+        </p>
+        <p>
+          No creemos en los métodos milagro. Creemos en la constancia
+          acompañada: alguien que escucha cómo tocas, te corrige con paciencia y
+          te pone delante de una pieza que puedas terminar.
+        </p>
+        <div class="franja-datos">
+          <div class="dato">
+            <span class="dato__cifra">27</span>
+            <p class="dato__texto">años enseñando en el mismo barrio</p>
+          </div>
+          <div class="dato">
+            <span class="dato__cifra">320</span>
+            <p class="dato__texto">alumnos cada curso, de 6 a 78 años</p>
+          </div>
+          <div class="dato">
+            <span class="dato__cifra">24</span>
+            <p class="dato__texto">citas al año entre conciertos y talleres</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion seccion--papel">
+    <div class="wrap">
+      <div class="cabecera-seccion">
+        <div class="cabecera-seccion__texto">
+          <p class="antetitulo">Agenda</p>
+          <h2 class="titulo-seccion">Lo que viene</h2>
+          <p class="texto-tenue" style="margin-top: 1rem;">
+            Conciertos, clases magistrales y talleres abiertos. Casi todo se
+            puede escuchar sin ser alumno.
+          </p>
+        </div>
+        <a class="enlace-flecha" href="/eventos/">
+          Toda la agenda
+          <span class="btn__flecha" aria-hidden="true">→</span>
+        </a>
+      </div>
+
+      {proximosTres.length > 0 ? (
+        <div class="rejilla-eventos">
+          {proximosTres.map((evento) => (
+            <EventCard evento={evento} />
+          ))}
+        </div>
+      ) : (
+        <p class="texto-tenue">
+          Estamos cerrando la próxima temporada. Mientras tanto, escríbenos y te
+          avisamos en cuanto publiquemos las fechas.
+        </p>
+      )}
+    </div>
+  </section>
+
+  <section class="seccion">
+    <div class="wrap">
+      <div class="cabecera-seccion">
+        <div class="cabecera-seccion__texto">
+          <p class="antetitulo">Método</p>
+          <h2 class="titulo-seccion">Tres pasos, ningún atajo.</h2>
+        </div>
+        <p class="entradilla">
+          El mismo hilo conductor desde iniciación hasta el ensemble: escuchar,
+          construir y compartir.
+        </p>
+      </div>
+
+      <div class="pasos">
+        <article class="paso">
+          <h3>Escuchar antes de tocar</h3>
+          <p>
+            Empezamos con el oído: reconocer, cantar y comparar. La técnica llega
+            después, cuando ya hay algo que decir con ella.
+          </p>
+        </article>
+        <article class="paso">
+          <h3>Piezas que puedas terminar</h3>
+          <p>
+            Repertorio elegido para cerrarse en semanas, no en años. Terminar una
+            obra enseña más que empezar veinte.
+          </p>
+        </article>
+        <article class="paso">
+          <h3>Subir al escenario</h3>
+          <p>
+            Cada trimestre hay una audición o un concierto. Tocar para otros es
+            parte del aprendizaje, no la recompensa final.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion seccion--tinta">
+    <div class="wrap">
+      <figure class="cita">
+        <blockquote>
+          «No formamos solistas. Formamos gente que sabe escuchar, ensayar y
+          terminar lo que empieza.»
+        </blockquote>
+        <figcaption>Nuria Soler · Directora de la academia</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="seccion seccion--ajustada">
+    <div class="wrap cta">
+      <div>
+        <p class="antetitulo">Empezamos</p>
+        <h2 class="cta__titulo">La primera clase es una conversación.</h2>
+        <p class="entradilla" style="margin-top: 1rem;">
+          Cuéntanos qué te gustaría tocar y te proponemos un horario de prueba
+          sin compromiso.
+        </p>
+      </div>
+      <a class="btn btn--terracota" href="/contacto/">
+        Reserva tu clase
+        <span class="btn__flecha" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+</BaseLayout>

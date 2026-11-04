@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  titulo="Página no encontrada"
+  descripcion="La página que buscas no existe o ha cambiado de sitio."
+  noindex={true}
+>
+  <section class="pagina-corta">
+    <div class="pagina-corta__caja">
+      <p class="pagina-corta__codigo">404</p>
+      <h1 class="titulo-seccion">Esta nota no está en la partitura.</h1>
+      <p class="entradilla" style="margin: 1.25rem auto 0;">
+        Puede que el enlace haya cambiado o que el evento ya se haya celebrado.
+        Prueba desde la agenda o vuelve al inicio.
+      </p>
+      <div style="margin-top: 2.5rem; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+        <a class="btn btn--terracota" href="/">
+          Volver al inicio
+          <span class="btn__flecha" aria-hidden="true">→</span>
+        </a>
+        <a class="btn btn--fantasma" href="/eventos/">Ver eventos</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,155 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const programas = [
+  {
+    nombre: 'Piano',
+    descripcion:
+      'Lectura, técnica y repertorio elegido contigo. Trabajamos desde la primera pieza hasta el concierto de fin de curso.',
+    meta: ['Desde 6 años', 'Clase individual', '60 min'],
+  },
+  {
+    nombre: 'Guitarra',
+    descripcion:
+      'Clásica, acústica o eléctrica. La misma base de lectura y armonía, con el repertorio que te trajo hasta aquí.',
+    meta: ['Desde 8 años', 'Individual o dúo', '60 min'],
+  },
+  {
+    nombre: 'Cuerdas',
+    descripcion:
+      'Violín, viola y violonchelo. Clase individual más un ensayo semanal de ensemble para aprender a escucharse.',
+    meta: ['Desde 6 años', 'Individual + ensemble', '60 min'],
+  },
+  {
+    nombre: 'Viento',
+    descripcion:
+      'Flauta travesera, clarinete y saxofón. Respiración, sonido y una banda pequeña para ponerlo en práctica.',
+    meta: ['Desde 8 años', 'Individual o dúo', '45–60 min'],
+  },
+  {
+    nombre: 'Canto',
+    descripcion:
+      'Técnica vocal, interpretación y repertorio. Sin exámenes de estilo: trabajamos la voz que tienes.',
+    meta: ['Desde 14 años', 'Clase individual', '50 min'],
+  },
+  {
+    nombre: 'Producción y lenguaje',
+    descripcion:
+      'Lenguaje musical, armonía aplicada y producción en estudio. Para quien quiere entender lo que suena.',
+    meta: ['Desde 12 años', 'Grupos de 4', '60 min'],
+  },
+];
+---
+
+<BaseLayout
+  titulo="Clases"
+  descripcion="Clases de piano, guitarra, cuerdas, viento, canto y producción en Valencia. Grupos reducidos, primera clase de prueba gratuita y escenario cada trimestre."
+  imagen="/images/sala-estudio.jpg"
+>
+  <section class="seccion">
+    <div class="wrap">
+      <p class="antetitulo">Clases y programas · Curso 2026–2027</p>
+      <h1 class="display" style="max-width: 20ch;">
+        Clases para gente que quiere tocar.
+      </h1>
+      <p class="entradilla" style="margin-top: 1.5rem;">
+        Seis itinerarios, un mismo criterio: grupos pequeños, profesorado en
+        activo y una pieza terminada cada trimestre. No hace falta experiencia
+        previa ni edad mínima para empezar.
+      </p>
+    </div>
+  </section>
+
+  <section class="seccion seccion--ajustada">
+    <div class="wrap">
+      <div class="rejilla-programas">
+        {programas.map((programa, indice) => (
+          <article class="programa">
+            <span class="programa__numero">
+              {String(indice + 1).padStart(2, '0')}
+            </span>
+            <h2 class="programa__nombre">{programa.nombre}</h2>
+            <p class="programa__desc">{programa.descripcion}</p>
+            <p class="programa__meta">
+              {programa.meta.map((dato) => (
+                <span>{dato}</span>
+              ))}
+            </p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion seccion--papel">
+    <div class="wrap">
+      <div class="cabecera-seccion">
+        <div class="cabecera-seccion__texto">
+          <p class="antetitulo">Cómo funciona</p>
+          <h2 class="titulo-seccion">Una semana en La Clave</h2>
+        </div>
+        <p class="entradilla">
+          La clase individual es el centro, pero no basta: el oído y el conjunto
+          se entrenan en grupo.
+        </p>
+      </div>
+
+      <div class="pasos">
+        <article class="paso">
+          <h3>Una clase individual</h3>
+          <p>
+            Sesenta minutos a la semana con tu profesor de instrumento. Mismo
+            día y hora todo el curso, con dos recuperaciones por trimestre.
+          </p>
+        </article>
+        <article class="paso">
+          <h3>Lenguaje musical en grupo</h3>
+          <p>
+            Una hora semanal en grupos de cuatro a seis personas. Lectura,
+            ritmo y armonía aplicada al repertorio que estás tocando.
+          </p>
+        </article>
+        <article class="paso">
+          <h3>Ensayo y escenario</h3>
+          <p>
+            Ensemble abierto los sábados y una audición por trimestre. Tocar con
+            otros es la parte que más rápido hace avanzar.
+          </p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion">
+    <div class="wrap duo">
+      <div class="duo__texto">
+        <p class="antetitulo">Antes de matricularte</p>
+        <h2 class="titulo-seccion">La primera clase es gratis.</h2>
+        <p>
+          Reservamos una hora para conocernos: nos cuentas qué has tocado, qué
+          te gustaría tocar y probamos un instrumento contigo. Si encaja, te
+          proponemos horario y grupo; si no, te orientamos hacia otro sitio.
+        </p>
+        <p>
+          No pedimos nivel ni título. Pedimos ganas de venir cada semana y un
+          instrumento propio a partir del segundo mes (la academia presta uno
+          durante el primero).
+        </p>
+        <a class="btn btn--terracota" href="/contacto/">
+          Reserva tu clase de prueba
+          <span class="btn__flecha" aria-hidden="true">→</span>
+        </a>
+      </div>
+      <div class="duo__media">
+        <img
+          src="/images/eventos/clase-magistral-piano.jpg"
+          alt="Detalle de las teclas de un piano vertical con luz cálida"
+          width="1200"
+          height="800"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

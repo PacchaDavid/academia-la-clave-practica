@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  titulo="Gracias"
+  descripcion="Hemos recibido tu solicitud. Te responderemos en un día laborable."
+  noindex={true}
+>
+  <section class="pagina-corta">
+    <div class="pagina-corta__caja">
+      <p class="antetitulo" style="justify-content: center;">Solicitud enviada</p>
+      <h1 class="display" style="font-size: clamp(2.4rem, 5vw, 4rem);">
+        Gracias por escribirnos.
+      </h1>
+      <p class="entradilla" style="margin: 1.5rem auto 0;">
+        Hemos recibido tu mensaje. Te contestamos en un día laborable, de lunes
+        a viernes, al correo o al teléfono que nos has dejado.
+      </p>
+      <p class="texto-tenue" style="margin-top: 1rem; font-size: 0.9rem;">
+        Si tu consulta es urgente, llama a la secretaría al
+        <a href="tel:+34960000000">960 00 00 00</a>.
+      </p>
+      <div style="margin-top: 2.5rem; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;">
+        <a class="btn btn--terracota" href="/eventos/">
+          Ver la agenda
+          <span class="btn__flecha" aria-hidden="true">→</span>
+        </a>
+        <a class="btn btn--fantasma" href="/">Volver al inicio</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

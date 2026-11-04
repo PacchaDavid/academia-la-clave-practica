@@ -1,0 +1,152 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  titulo="Contacto"
+  descripcion="Escríbenos para reservar una clase de prueba o preguntar por la agenda de la Academia La Clave en Valencia."
+  imagen="/images/sala-estudio.jpg"
+>
+  <section class="seccion">
+    <div class="wrap">
+      <p class="antetitulo">Contacto</p>
+      <h1 class="display" style="max-width: 18ch;">Cuéntanos qué quieres tocar.</h1>
+      <p class="entradilla" style="margin-top: 1.5rem;">
+        Respondemos en un día laborable. Si prefieres pasar por la academia,
+        estamos en el centro y enseñamos las aulas sin cita.
+      </p>
+    </div>
+  </section>
+
+  <section class="seccion seccion--ajustada">
+    <div class="wrap contacto-grid">
+      <div class="contacto-datos">
+        <div class="contacto-dato">
+          <h3>Dirección</h3>
+          <address>
+            Calle del Compás, 14<br />
+            46001 Valencia
+          </address>
+        </div>
+        <div class="contacto-dato">
+          <h3>Escríbenos</h3>
+          <p>
+            <a href="mailto:hola@laclave.example">hola@laclave.example</a><br />
+            <a href="tel:+34960000000">960 00 00 00</a>
+          </p>
+        </div>
+        <div class="contacto-dato">
+          <h3>Horario de secretaría</h3>
+          <p>
+            Lunes a viernes, 10:00–21:00<br />
+            Sábados, 10:00–14:00
+          </p>
+        </div>
+        <div class="contacto-dato">
+          <h3>Cómo llegar</h3>
+          <p>
+            Metro Colón (líneas 3 y 5), a cinco minutos andando. Aparcamiento
+            público en la plaza del Ayuntamiento.
+          </p>
+        </div>
+      </div>
+
+      <form
+        class="formulario"
+        name="contacto"
+        method="POST"
+        action="/gracias/"
+        data-netlify="true"
+        netlify-honeypot="bot-field"
+      >
+        <input type="hidden" name="form-name" value="contacto" />
+        <p class="honeypot">
+          <label>
+            No rellenar este campo
+            <input name="bot-field" tabindex="-1" autocomplete="off" />
+          </label>
+        </p>
+
+        <div class="formulario__fila">
+          <div class="campo">
+            <label for="nombre">Nombre y apellidos</label>
+            <input
+              id="nombre"
+              name="nombre"
+              type="text"
+              autocomplete="name"
+              placeholder="Ariadna Puig"
+              required
+            />
+          </div>
+          <div class="campo">
+            <label for="email">Correo electrónico</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              placeholder="ariadna@correo.example"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="formulario__fila">
+          <div class="campo">
+            <label for="telefono">Teléfono (opcional)</label>
+            <input
+              id="telefono"
+              name="telefono"
+              type="tel"
+              autocomplete="tel"
+              placeholder="600 00 00 00"
+            />
+          </div>
+          <div class="campo">
+            <label for="interes">Me interesa</label>
+            <select id="interes" name="interes">
+              <option value="Piano">Piano</option>
+              <option value="Guitarra">Guitarra</option>
+              <option value="Cuerdas">Cuerdas</option>
+              <option value="Viento">Viento</option>
+              <option value="Canto">Canto</option>
+              <option value="Producción y lenguaje">Producción y lenguaje musical</option>
+              <option value="Aún no lo sé">Aún no lo sé</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="campo campo--ancho">
+          <label for="mensaje">¿Qué te gustaría hacer?</label>
+          <textarea
+            id="mensaje"
+            name="mensaje"
+            rows="5"
+            placeholder="Toco la guitarra desde hace dos años y me gustaría probar una clase de guitarra eléctrica por las tardes."
+            required
+          ></textarea>
+        </div>
+
+        <label class="campo-check">
+          <input type="checkbox" name="privacidad" value="aceptado" required />
+          <span>
+            Acepto que la academia use estos datos únicamente para responder a mi
+            consulta.
+          </span>
+        </label>
+
+        <div class="formulario__pie">
+          <button class="btn btn--terracota" type="submit">
+            Enviar solicitud
+            <span class="btn__flecha" aria-hidden="true">→</span>
+          </button>
+          <p class="formulario__nota">
+            El formulario se procesa con Netlify Forms; recibirás confirmación en
+            la propia web.
+          </p>
+        </div>
+      </form>
+    </div>
+  </section>
+</BaseLayout>

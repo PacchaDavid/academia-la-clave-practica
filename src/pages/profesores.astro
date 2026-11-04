@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const profesores = [
+  {
+    nombre: 'Nuria Soler',
+    rol: 'Dirección y ensemble',
+    bio: 'Fundó La Clave en 1998 después de diez años dirigiendo coros amateur. Dirige el ensemble y coordina el proyecto educativo.',
+  },
+  {
+    nombre: 'Marta Ferrer',
+    rol: 'Piano',
+    bio: 'Catedrática de piano y colaboradora habitual en ciclos de cámara. Trabaja el repertorio romántico y la música española.',
+  },
+  {
+    nombre: 'Inés Ribera',
+    rol: 'Cuerdas',
+    bio: 'Viola en la Orquestra de la Ribera. Especializada en iniciación a la cuerda y en música de cámara con jóvenes.',
+  },
+  {
+    nombre: 'Tomás Aguilar',
+    rol: 'Viento',
+    bio: 'Clarinetista y director de banda. Combina la clase individual con arreglos para el ensemble de viento.',
+  },
+  {
+    nombre: 'Lucía Prats',
+    rol: 'Canto',
+    bio: 'Cantante y pedagoga vocal. Prepara repertorio de concierto y acompaña a los alumnos en sus primeras grabaciones.',
+  },
+  {
+    nombre: 'Diego Marín',
+    rol: 'Producción y lenguaje',
+    bio: 'Técnico de sonido en activo. Da lenguaje musical aplicado y abre el estudio a quien quiere grabar sus maquetas.',
+  },
+];
+
+const iniciales = (nombre: string) =>
+  nombre
+    .split(' ')
+    .map((parte) => parte[0])
+    .join('');
+---
+
+<BaseLayout
+  titulo="Profesores"
+  descripcion="El claustro de la Academia La Clave: seis profesores en activo que combinan la enseñanza con la interpretación y la producción."
+  imagen="/images/hero-sala.jpg"
+>
+  <section class="seccion">
+    <div class="wrap">
+      <p class="antetitulo">El claustro</p>
+      <h1 class="display" style="max-width: 16ch;">
+        Quien te escucha cada semana.
+      </h1>
+      <p class="entradilla" style="margin-top: 1.5rem;">
+        Seis profesores que siguen tocando, grabando o dirigiendo fuera del aula.
+        Ese es el primer requisito para enseñar aquí.
+      </p>
+    </div>
+  </section>
+
+  <section class="seccion seccion--ajustada">
+    <div class="wrap">
+      <div class="rejilla-profesores">
+        {profesores.map((profesor) => (
+          <article class="profesor">
+            <div class="profesor__iniciales" aria-hidden="true">
+              {iniciales(profesor.nombre)}
+            </div>
+            <div>
+              <h2 class="profesor__nombre">{profesor.nombre}</h2>
+              <p class="profesor__rol">{profesor.rol}</p>
+              <p class="profesor__bio">{profesor.bio}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="seccion seccion--ajustada seccion--papel">
+    <div class="wrap">
+      <figure class="cita">
+        <blockquote>
+          «Un profesor de música no fabrica intérpretes: acompaña a alguien
+          mientras descubre lo que ya tenía dentro.»
+        </blockquote>
+        <figcaption>Inés Ribera · Profesora de cuerdas</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="seccion seccion--ajustada">
+    <div class="wrap cta">
+      <div>
+        <p class="antetitulo">¿Te sumas?</p>
+        <h2 class="cta__titulo">Buscamos profesor de viento-madera.</h2>
+        <p class="entradilla" style="margin-top: 1rem;">
+          Si tocas y te gusta enseñar, escríbenos con tu trayectoria. Abrimos una
+          plaza a tiempo parcial para el próximo curso.
+        </p>
+      </div>
+      <a class="btn btn--fantasma" href="/contacto/">
+        Envíanos tu candidatura
+        <span class="btn__flecha" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </section>
+</BaseLayout>
