@@ -1,0 +1,113 @@
+# Configuración de Decap CMS
+# ---------------------------------------------------------------------------
+# Antes de publicar, sustituye:
+#   - repo:      tu usuario/organización y nombre del repositorio
+#   - base_url:  la URL del proxy OAuth desplegado en Netlify (ver README)
+#   - site_url / display_url: la URL final del sitio
+# Con `local_backend: true` puedes editar en local sin OAuth usando
+# `npm run cms` en una segunda terminal.
+# ---------------------------------------------------------------------------
+
+backend:
+  name: github
+  repo: tu-usuario/academia-la-clave
+  branch: main
+  base_url: https://tu-proxy-oauth.netlify.app
+  auth_endpoint: auth
+  # El proxy OAuth se despliega aparte: lo explica el README del proyecto.
+
+local_backend: true
+
+site_url: https://academia-la-clave.netlify.app
+display_url: https://academia-la-clave.netlify.app
+publish_mode: editorial_workflow
+
+media_folder: public/images/eventos
+public_folder: /images/eventos
+
+collections:
+  - name: eventos
+    label: Eventos
+    label_singular: Evento
+    description: Conciertos, talleres, audiciones y clases abiertas de la agenda.
+    folder: src/content/eventos
+    create: true
+    delete: true
+    slug: '{{slug}}'
+    preview_path: eventos/{{slug}}
+    sortable_fields: ['fecha', 'titulo']
+    fields:
+      - label: Título
+        name: titulo
+        widget: string
+        hint: Aparece en la tarjeta y en la cabecera de la ficha.
+
+      - label: Fecha
+        name: fecha
+        widget: datetime
+        date_format: 'YYYY-MM-DD'
+        time_format: false
+        format: 'YYYY-MM-DD'
+        hint: El evento pasa al archivo automáticamente al día siguiente.
+
+      - label: Hora
+        name: hora
+        widget: string
+        default: '19:30'
+        hint: Formato 24 h, por ejemplo 19:30.
+
+      - label: Lugar
+        name: lugar
+        widget: string
+        default: 'Auditorio La Clave'
+
+      - label: Categoría
+        name: categoria
+        widget: select
+        options:
+          - Concierto
+          - Clase magistral
+          - Taller
+          - Audición
+          - Encuentro
+          - Puertas abiertas
+
+      - label: Resumen
+        name: resumen
+        widget: text
+        hint: Máximo 200 caracteres. Se usa en las tarjetas y en los metadatos.
+
+      - label: Imagen
+        name: imagen
+        widget: image
+        media_folder: ''
+        public_folder: ''
+        hint: Se guarda en public/images/eventos. Usa formato horizontal (4:3).
+
+      - label: Texto alternativo de la imagen
+        name: imagen_alt
+        widget: string
+        hint: Describe la imagen para lectores de pantalla.
+
+      - label: Entrada
+        name: precio
+        widget: string
+        default: 'Entrada libre'
+        required: false
+
+      - label: Destacar en portada
+        name: destacado
+        widget: boolean
+        default: false
+        required: false
+
+      - label: Borrador
+        name: borrador
+        widget: boolean
+        default: false
+        required: false
+        hint: Si está activo, el evento no se genera en la web publicada.
+
+      - label: Contenido
+        name: body
+        widget: markdown
