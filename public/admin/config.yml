@@ -11,11 +11,9 @@ backend:
   name: github
   repo: PacchaDavid/nombre-del-repositorio
   branch: main
-  base_url: https://TU-PROXY-OAUTH.netlify.app
-  auth_endpoint: auth
   # El proxy OAuth se despliega aparte: lo explica el README del proyecto.
 
-local_backend: true
+local_backend: false
 
 site_url: https://beautiful-khapse-aacccf.netlify.app
 display_url: https://beautiful-khapse-aacccf.netlify.app
