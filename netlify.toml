@@ -5,6 +5,19 @@
 [build.environment]
   NODE_VERSION = "22"
 
+# Astro genera /admin/index.html y /gracias/index.html. Estas reglas evitan
+# que la versión sin barra final acabe en la 404 en configuraciones que no
+# normalizan la barra automáticamente.
+[[redirects]]
+  from = "/admin"
+  to = "/admin/"
+  status = 301
+
+[[redirects]]
+  from = "/gracias"
+  to = "/gracias/"
+  status = 301
+
 # Cabeceras básicas de seguridad. Ajusta la CSP cuando añadas
 # analítica, vídeos embebidos u otros terceros.
 [[headers]]

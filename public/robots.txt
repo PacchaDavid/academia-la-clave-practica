@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin/
 
 # Añade aquí la línea Sitemap cuando incorpores @astrojs/sitemap:
-# Sitemap: https://academia-la-clave.netlify.app/sitemap-index.xml
+# Sitemap: https://beautiful-khapse-aacccf.netlify.app/sitemap-index.xml

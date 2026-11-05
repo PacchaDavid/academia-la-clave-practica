@@ -1,25 +1,24 @@
 # Configuración de Decap CMS
 # ---------------------------------------------------------------------------
 # Antes de publicar, sustituye:
-#   - repo:      tu usuario/organización y nombre del repositorio
 #   - base_url:  la URL del proxy OAuth desplegado en Netlify (ver README)
-#   - site_url / display_url: la URL final del sitio
+#   - repo y site_url ya apuntan al repositorio y al sitio de este despliegue.
 # Con `local_backend: true` puedes editar en local sin OAuth usando
 # `npm run cms` en una segunda terminal.
 # ---------------------------------------------------------------------------
 
 backend:
   name: github
-  repo: tu-usuario/academia-la-clave
+  repo: PacchaDavid/nombre-del-repositorio
   branch: main
-  base_url: https://tu-proxy-oauth.netlify.app
+  base_url: https://TU-PROXY-OAUTH.netlify.app
   auth_endpoint: auth
   # El proxy OAuth se despliega aparte: lo explica el README del proyecto.
 
 local_backend: true
 
-site_url: https://academia-la-clave.netlify.app
-display_url: https://academia-la-clave.netlify.app
+site_url: https://beautiful-khapse-aacccf.netlify.app
+display_url: https://beautiful-khapse-aacccf.netlify.app
 publish_mode: editorial_workflow
 
 media_folder: public/images/eventos
