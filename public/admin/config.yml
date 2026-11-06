@@ -17,7 +17,7 @@ local_backend: false
 
 site_url: https://beautiful-khapse-aacccf.netlify.app
 display_url: https://beautiful-khapse-aacccf.netlify.app
-publish_mode: editorial_workflow
+#publish_mode: editorial_workflow
 
 media_folder: public/images/eventos
 public_folder: /images/eventos
