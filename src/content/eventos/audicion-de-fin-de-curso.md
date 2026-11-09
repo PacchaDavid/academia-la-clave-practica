@@ -1,13 +1,14 @@
 ---
-titulo: 'Audición de fin de curso'
+titulo: Audición de fin de curso
 fecha: 2027-06-19
-hora: '12:00'
-lugar: 'Auditorio La Clave'
-categoria: 'Audición'
-resumen: 'Todas las clases suben al escenario en una mañana abierta a las familias y al barrio.'
-imagen: '/images/eventos/audicion-fin-de-curso.jpg'
-imagen_alt: 'Partitura abierta con anotaciones a lápiz en primer plano'
-precio: 'Entrada libre'
+hora: 12:00
+lugar: Auditorio La Clave
+categoria: Audición
+resumen: Todas las clases suben al escenario en una mañana abierta a las
+  familias y al barrio.
+imagen: /images/eventos/audicion-fin-de-curso.jpg
+imagen_alt: Partitura abierta con anotaciones a lápiz en primer plano
+precio: Pagar USD 10000
 destacado: false
 borrador: false
 ---
