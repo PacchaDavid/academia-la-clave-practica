@@ -15,8 +15,8 @@ backend:
 
 local_backend: false
 
-site_url: https://beautiful-khapse-aacccf.netlify.app
-display_url: https://beautiful-khapse-aacccf.netlify.app
+site_url: https://test-academia-la-clave.netlify.app/
+display_url: https://test-academia-la-clave.netlify.app/
 #publish_mode: editorial_workflow
 
 media_folder: public/images/eventos
