@@ -1,17 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import EventCard from '../components/EventCard.astro';
-import { getCollection } from 'astro:content';
 import {
   esPasado,
   formatearFechaCorta,
+  getEventos,
   porFechaAscendente,
 } from '../lib/eventos';
 
-const eventos = await getCollection(
-  'eventos',
-  ({ data }) => import.meta.env.DEV || !data.borrador,
-);
+const eventos = await getEventos();
 
 const proximos = eventos
   .filter((evento) => !esPasado(evento.data.fecha))

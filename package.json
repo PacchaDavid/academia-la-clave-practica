@@ -3,22 +3,29 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Sitio de la Academia Musical La Clave: Astro, Decap CMS y Netlify Forms.",
+  "description": "Sitio de la Academia Musical La Clave: Astro, Sanity y Netlify Forms.",
   "scripts": {
     "dev": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "cms": "decap-server"
+    "studio": "npm --prefix studio run dev",
+    "studio:deploy": "npm --prefix studio run deploy",
+    "migrar": "node --env-file=.env scripts/migrar-a-sanity.mjs"
   },
   "dependencies": {
+    "@astrojs/netlify": "^8.2.12",
     "@fontsource-variable/fraunces": "^5.3.0",
     "@fontsource-variable/instrument-sans": "^5.3.0",
+    "@portabletext/to-html": "^6.0.0",
+    "@sanity/client": "^8.15.1",
+    "@sanity/image-url": "^2.1.1",
     "astro": "^7.4.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
-    "decap-server": "^3.11.6",
+    "gray-matter": "^4.0.3",
+    "marked": "^18.2.0",
     "typescript": "^6.0.3"
   }
 }

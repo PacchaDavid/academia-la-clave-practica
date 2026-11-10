@@ -1,18 +1,15 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import EventCard from '../../components/EventCard.astro';
-import { getCollection } from 'astro:content';
 import {
   esPasado,
   formatearFecha,
+  getEventos,
   porFechaAscendente,
   porFechaDescendente,
 } from '../../lib/eventos';
 
-const eventos = await getCollection(
-  'eventos',
-  ({ data }) => import.meta.env.DEV || !data.borrador,
-);
+const eventos = await getEventos();
 
 const proximos = eventos
   .filter((evento) => !esPasado(evento.data.fecha))
@@ -26,7 +23,7 @@ const pasados = eventos
 <BaseLayout
   titulo="Eventos"
   descripcion="Agenda de conciertos, clases magistrales, talleres y audiciones de la Academia La Clave en Valencia."
-  imagen="/images/eventos/concierto-de-invierno.jpg"
+  imagen={proximos[0]?.data.imagen ?? '/images/hero-sala.jpg'}
 >
   <section class="seccion">
     <div class="wrap">

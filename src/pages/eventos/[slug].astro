@@ -1,27 +1,15 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCollection, render } from 'astro:content';
-import { formatearFecha, type Evento } from '../../lib/eventos';
+import { formatearFecha, getEvento } from '../../lib/eventos';
 
-export async function getStaticPaths() {
-  const eventos = await getCollection(
-    'eventos',
-    ({ data }) => import.meta.env.DEV || !data.borrador,
-  );
+const { slug } = Astro.params;
+const evento = slug ? await getEvento(slug) : undefined;
 
-  return eventos.map((evento) => ({
-    params: { slug: evento.id },
-    props: { evento },
-  }));
+if (!evento) {
+  return Astro.rewrite('/404');
 }
 
-interface Props {
-  evento: Evento;
-}
-
-const { evento } = Astro.props;
-const { Content } = await render(evento);
-
+const { data, bodyHtml } = evento;
 const {
   titulo,
   fecha,
@@ -32,8 +20,7 @@ const {
   imagen,
   imagen_alt,
   precio,
-  borrador,
-} = evento.data;
+} = data;
 
 const fechaISO = fecha.toISOString().slice(0, 10);
 
@@ -93,11 +80,6 @@ const jsonLd = {
         </div>
 
         <div>
-          {borrador && import.meta.env.DEV && (
-            <p class="antetitulo" style="color: var(--oliva);">
-              Borrador · visible solo en desarrollo
-            </p>
-          )}
           <p class="antetitulo">{categoria}</p>
           <h1 class="display" style="font-size: clamp(2.2rem, 4.8vw, 3.8rem);">
             {titulo}
@@ -134,9 +116,7 @@ const jsonLd = {
     </div>
 
     <div class="wrap seccion seccion--ajustada">
-      <div class="evento-cuerpo">
-        <Content />
-      </div>
+      <div class="evento-cuerpo" set:html={bodyHtml} />
 
       <div class="evento-pie">
         <a class="enlace-flecha" href="/eventos/">

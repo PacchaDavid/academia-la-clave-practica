@@ -2,20 +2,22 @@
 
 Sitio de prácticas para entrenar un despliegue real en Netlify. La academia es
 ficticia; la arquitectura no: es la que usarías para un cliente pequeño que
-quiere editar su agenda sin tocar código.
+quiere editar su agenda sin tocar código y sin pagar builds por cada cambio.
 
 **Stack**
 
 | Pieza | Uso |
 | --- | --- |
-| [Astro 7](https://docs.astro.build) | Generación estática, content collections y rutas por evento |
-| [Decap CMS 3](https://decapcms.org) | Panel `/admin` para editar eventos en Markdown |
+| [Astro 7](https://docs.astro.build) | Renderizado híbrido: páginas fijas estáticas y agenda bajo demanda |
+| [Sanity](https://www.sanity.io) | CMS headless: contenido, Studio de edición y CDN de imágenes |
+| [@astrojs/netlify](https://docs.astro.build/en/guides/integrations-guide/netlify/) | Adaptador de Netlify para las rutas en servidor |
 | [Netlify Forms](https://docs.netlify.com/manage/forms/setup/) | Recepción del formulario de contacto sin backend propio |
-| Git + GitHub | Control de versiones y origen de los builds de Netlify |
+| Git + GitHub | Control de versiones del **código** (el contenido ya no vive aquí) |
 | CSS a medida + Fontsource | Sistema de diseño cálido, sin framework de UI |
 
-No se usa adaptador de Astro para Netlify porque el sitio es 100 % estático:
-Netlify publica `dist/` tal cual.
+El contenido se edita en un Studio alojado en `*.sanity.studio` y se lee de la
+API en cada petición. Publicar un evento **no genera un commit ni un build**:
+la home y la agenda se cachean 60 segundos en el CDN de Netlify.
 
 ---
 
@@ -25,14 +27,46 @@ Requisitos: Node 22 o superior y npm.
 
 ```bash
 npm install
-npm run dev        # http://localhost:4321
-npm run build      # astro check + build estático en dist/
-npm run preview    # sirve dist/ en local
+cp .env.example .env        # pega tu SANITY_PROJECT_ID
+npm run dev                 # http://localhost:4321
+npm run build               # astro check + build híbrido
+npm run preview             # sirve el resultado en local
 ```
 
-El build ejecuta `astro check` antes de compilar: si un evento tiene el
-frontmatter incompleto o mal tipado, el despliegue falla en vez de publicar una
-página rota.
+Para el panel de edición:
+
+```bash
+cp studio/.env.example studio/.env   # mismo project ID
+cd studio && npm install             # una sola vez
+npm run dev                          # Studio en http://localhost:3333
+```
+
+Desde la raíz, `npm run studio` hace lo mismo sin cambiar de carpeta.
+
+### Crear el proyecto de Sanity (una vez)
+
+1. Entra en <https://sanity.io/manage> y crea un proyecto gratuito.
+2. Crea el dataset `production` (visibilidad pública: las lecturas del sitio no
+   usan token).
+3. Copia el **Project ID** en `.env` y en `studio/.env`.
+4. Publica el Studio:
+
+   ```bash
+   npm run studio:deploy    # usa el subdominio de studio/sanity.cli.ts
+   ```
+
+   El subdominio configurado es `academia-la-clave`; si ya está ocupado,
+   cámbialo en `studio/sanity.cli.ts` y en `netlify.toml`.
+
+5. Ajusta el destino de `/admin` en `netlify.toml` si el subdominio no es
+   `academia-la-clave.sanity.studio`.
+6. En Netlify → **Site configuration → Environment variables**, define
+   `SANITY_PROJECT_ID` y `SANITY_DATASET`. Se leen en tiempo de ejecución: no
+   hay que reconstruir el sitio, pero Netlify las aplica al siguiente despliegue.
+
+Los editores se invitan desde **Sanity → Members**. En el plan gratuito solo
+existen los roles **Admin** y **Viewer**: quien edite tendrá permisos totales
+sobre el contenido.
 
 ---
 
@@ -41,236 +75,206 @@ página rota.
 ```text
 src/
 ├── components/          Header, Footer y tarjeta de evento
-├── content/
-│   └── eventos/         Un .md por evento (los edita Decap)
-├── content.config.ts    Esquema Zod de la colección `eventos`
 ├── layouts/BaseLayout   Metadatos, fuentes y estructura del documento
-├── lib/eventos.ts       Formateo de fechas y orden próximo/pasado
+├── lib/
+│   ├── sanity.ts        Cliente, variables de entorno y URLs de imagen
+│   └── eventos.ts       Consultas GROQ, adaptador a Evento y fechas
+├── middleware.ts        Cabeceras de caché CDN para / y /eventos
 ├── pages/
-│   ├── admin/index.astro Página mínima que monta Decap
-│   ├── index.astro
+│   ├── index.astro      Portada (SSR, cacheada) con el próximo evento
 │   ├── clases.astro
 │   ├── profesores.astro
 │   ├── contacto.astro   Formulario de Netlify Forms
 │   ├── gracias.astro    Destino tras enviar el formulario
 │   ├── 404.astro
 │   └── eventos/
-│       ├── index.astro  Agenda: próximos + archivo
-│       └── [slug].astro Ficha generada por evento
+│       ├── index.astro  Agenda: próximos + archivo (SSR)
+│       └── [slug].astro Ficha por evento (SSR)
 └── styles/global.css    Tokens, componentes y responsive
-public/
-├── admin/config.yml     Colección y backend de Decap
-├── images/              Fotos locales
-└── favicon.svg, robots.txt
-netlify.toml             Build, publish, cabeceras y Node
+studio/                  Studio de Sanity (React, se despliega aparte)
+├── sanity.config.ts
+└── schemas/evento.ts    Campos y validaciones del evento
+scripts/
+└── migrar-a-sanity.mjs  Migración única desde los .md antiguos
+public/                  Fotos fijas del sitio, favicon y robots.txt
+netlify.toml             Build, publish, redirect de /admin y cabeceras
 ```
+
+Las rutas marcadas con `export const prerender = true` (clases, profesores,
+contacto y gracias) se generan en el build. `/`, `/eventos/*` y `/404` se
+renderizan bajo demanda: Astro no permite reescribir una ruta en servidor hacia
+una página prerenderizada.
 
 ---
 
-## Eventos con Decap CMS
+## Eventos con Sanity
 
-Cada evento es un archivo Markdown en `src/content/eventos/`. El frontmatter se
-valida en `src/content.config.ts`:
+Cada evento es un documento `evento` con estos campos:
 
-```yaml
-titulo: 'Concierto de invierno: Raíces'
-fecha: 2026-12-12        # se usa para ordenar y separar el archivo
-hora: '19:30'
-lugar: 'Auditorio La Clave'
-categoria: 'Concierto'   # Concierto | Clase magistral | Taller | Audición | Encuentro | Puertas abiertas
-resumen: '...'           # máximo 200 caracteres
-imagen: '/images/eventos/concierto-de-invierno.jpg'
-imagen_alt: '...'
-precio: '12 € · 8 € estudiantes'
-destacado: true
-borrador: false
-```
+| Campo | Tipo | Notas |
+| --- | --- | --- |
+| `titulo` | string | Obligatorio |
+| `slug` | slug | Define la URL: `/eventos/<slug>/` |
+| `fecha` | date | Ordena la agenda y separa próximos/pasados |
+| `hora` | string | Formato `HH:MM` |
+| `lugar` | string | Por defecto, Auditorio La Clave |
+| `categoria` | string | Concierto, Clase magistral, Taller, Audición, Encuentro, Puertas abiertas |
+| `resumen` | text | Máximo 200 caracteres |
+| `imagen` | image | Horizontal; Sanity la recorta y la sirve en WebP/AVIF |
+| `imagen_alt` | string | Obligatorio |
+| `precio` | string | Por defecto, «Entrada libre» |
+| `destacado` | boolean | Reservado para futuros destacados |
+| `borrador` | boolean | Si está activo, el evento no aparece en la web |
+| `body` | Portable Text | Contenido de la ficha |
 
-- `borrador: true` excluye el evento del sitio publicado (en desarrollo sí se ve,
-  con un aviso).
-- La portada enlaza el próximo evento; la agenda separa próximos y pasados.
-- La URL de cada evento sale del nombre del archivo (`id` de la entrada), así
-  que renombrar un `.md` cambia su URL.
+- Las validaciones están en `studio/schemas/evento.ts`: el editor no puede
+  guardar un evento sin título, sin hora válida o con un resumen de más de 200
+  caracteres.
+- La URL sale de `slug`. Al migrar se conservó el nombre de archivo original,
+  así que los enlaces antiguos siguen funcionando.
+- `borrador: true` lo oculta en la web sin borrarlo del CMS.
+- Las imágenes se sirven desde `cdn.sanity.io` con `?w=1200&auto=format`: no
+  consumen ancho de banda de Netlify ni se guardan en git.
 
-### Editar en local (sin OAuth)
+### Publicar y ver el cambio
 
-En dos terminales:
+1. Edita o crea el evento en el Studio y pulsa **Publish**.
+2. La home y la agenda lo muestran en un máximo de **60 segundos** (lo que dura
+   la caché del CDN). No hay deploy ni build de Netlify.
+3. Si necesitas verlo al instante, abre la URL con `?v=2` o espera ese minuto.
+
+### Migrar los eventos antiguos (una vez)
+
+La migración ya se ejecutó: los 8 eventos y sus fotos están en Sanity, y los
+`.md` y `public/images/eventos` se borraron del repo (siguen en el historial de
+git). El script se conserva por si hay que rehacerla desde el historial; sube
+las fotos, convierte el Markdown a Portable Text y es idempotente (repetirlo
+actualiza los mismos documentos):
 
 ```bash
-npm run dev    # Astro en :4321
-npm run cms    # decap-server en :8081
+# 1. Simula y revisa la salida
+node scripts/migrar-a-sanity.mjs --dry-run
+
+# 2. Crea un token con rol Editor en sanity.io/manage → API → Tokens
+#    y guárdalo en .env como SANITY_WRITE_TOKEN
+npm run migrar
 ```
 
-Abre <http://localhost:4321/admin>. `local_backend: true` en
-`public/admin/config.yml` hace que Decap escriba directamente en el sistema de
-archivos: no hay login ni repositorio remoto. Es la forma más rápida de
-practicar el flujo editorial.
-
-### Editar en producción (GitHub OAuth)
-
-Decap necesita un pequeño proxy OAuth para hablar con GitHub; Netlify Identity
-y Git Gateway no se usan en este proyecto. Pasos:
-
-1. **Crea una GitHub OAuth App** (Settings → Developer settings → OAuth Apps):
-   - *Homepage URL*: la URL del sitio en Netlify.
-   - *Authorization callback URL*: `https://TU-PROXY.netlify.app/callback`.
-   - Guarda `Client ID` y genera un `Client Secret`.
-2. **Despliega el proxy** con el botón de despliegue de
-   [`vencax/netlify-cms-github-oauth-provider`](https://github.com/vencax/netlify-cms-github-oauth-provider)
-   en una cuenta de Netlify aparte y define sus variables de entorno:
-   `OAUTH_CLIENT_ID` y `OAUTH_CLIENT_SECRET`.
-3. **Actualiza `public/admin/config.yml`**:
-   - `base_url: https://TU-PROXY.netlify.app` (sustituye el marcador por la URL
-     del proxy).
-   - `repo` y `site_url` ya apuntan a este proyecto; cámbialos si renombras el
-     repositorio o el sitio.
-4. Haz commit y push: Netlify reconstruye y `/admin/` ya permite iniciar sesión.
-
-`publish_mode: editorial_workflow` está activo: al guardar, Decap crea una rama
-y un *pull request* en lugar de escribir en `main`. Al pulsar **Publicar** se
-hace merge, Netlify detecta el cambio y reconstruye. Ese es el ciclo completo
-que conviene practicar:
-
-```text
-editar en /admin → PR en GitHub → publicar → rebuild de Netlify → evento en la web
-```
-
-### Quién puede publicar
-
-El backend de GitHub no tiene usuarios propios: **la autorización la decide
-GitHub**. Decap usa el token de la persona que inicia sesión y no puede hacer
-nada que esa persona no pueda hacer ya en el repositorio.
-
-- Invita en GitHub solo a quien deba administrar el contenido, con permiso
-  **Write** o **Admin**. Un usuario sin acceso al repo puede autenticarse, pero
-  Decap no podrá leer ni escribir nada.
-- Con `editorial_workflow`, guardar crea una rama y un *pull request*;
-  **publicar es hacer merge**. Quien pueda mergear en `main`, publica.
-- Si quieres editores que propongan cambios sin publicar, dales **Write** y
-  protege `main` con un *ruleset*: exigir pull request, exigir aprobación y
-  bloquear force pushes. Así pueden crear PRs, pero el merge lo hace un
-  administrador.
-- Ocultar botones en el panel no es control de acceso: la seguridad está en los
-  permisos del repositorio y en las reglas de la rama.
+Para relanzarlo hay que restaurar antes `src/content/eventos` desde git
+(`git checkout <commit> -- src/content/eventos public/images/eventos`).
 
 ---
 
 ## Formulario de contacto (Netlify Forms)
 
-El formulario vive en `src/pages/contacto.astro` y cumple los requisitos de
-Netlify Forms:
+`contacto.astro` se prerenderiza, así que el formulario sigue presente en el
+HTML de `dist/contacto/index.html`. Netlify lo detecta en el primer despliegue.
 
 - `name="contacto"` y `data-netlify="true"`.
-- Campo oculto `form-name` con el mismo nombre (necesario fuera del HTML plano).
+- Campo oculto `form-name` con el mismo nombre.
 - Honeypot `bot-field` declarado con `netlify-honeypot="bot-field"`.
-- `method="POST"` y `action="/gracias/"` como página de confirmación.
+- `action="/gracias/"` como página de confirmación.
 
-Netlify detecta el formulario durante el primer despliegue porque está presente
-en el HTML estático de `dist/contacto/index.html`. Después:
-
-- Las respuestas aparecen en **Netlify → Forms → contacto**.
-- Configura una notificación por correo en esa misma pantalla.
-- Se puede añadir reCAPTCHA si llega spam, además del honeypot.
-- **En local no se procesa**: `astro dev` no ejecuta el runtime de Netlify.
-  Para probarlo, usa un deploy preview o `netlify dev` con la CLI de Netlify.
-- La protección **Edge Access** del sitio debe estar desactivada: si el sitio
-  pide login, los visitantes externos no pueden enviar el formulario.
-
-El límite de formularios y envíos del plan gratuito de Netlify cambia con el
-tiempo; revísalo antes de un proyecto real.
+Las respuestas aparecen en **Netlify → Forms → contacto**. Configura allí la
+notificación por correo. En local no se procesa: usa un deploy preview o
+`netlify dev`.
 
 ---
 
 ## Despliegue en Netlify
 
-1. Crea el repositorio en GitHub y sube el proyecto (rama `main`).
-2. En Netlify: **Add new site → Import an existing project** y elige el repo.
+1. Sube el proyecto a GitHub (rama `main`).
+2. En Netlify: **Add new site → Import an existing project**.
 3. Netlify lee `netlify.toml`: build `npm run build`, publish `dist`, Node 22.
-4. Revisa las URLs si cambias de dominio:
-   - `site` en `astro.config.mjs` (canonical y Open Graph absolutos).
-   - `site_url` y `display_url` en `public/admin/config.yml`.
-5. Configura el OAuth de Decap (sección anterior) y publica al menos un evento
-   de prueba.
-6. Revisa el checklist.
+4. Define `SANITY_PROJECT_ID` y `SANITY_DATASET` en las variables de entorno.
+5. Ajusta `site` en `astro.config.mjs` si cambias de dominio (canonical y Open
+   Graph absolutos).
+6. Despliega. La primera visita a `/` y `/eventos` ejecuta la función; las
+   siguientes salen del CDN.
+
+No hay proxy OAuth, ni Identity, ni credenciales de GitHub en el sitio.
 
 ### Checklist de aceptación
 
 - [ ] `npm run build` termina sin errores en local y en Netlify.
 - [ ] Portada, clases, profesores, agenda, ficha de evento y contacto cargan.
-- [ ] `/admin` pide login en producción y permite editar un evento.
-- [ ] Publicar desde Decap genera commit/merge y un rebuild automático.
-- [ ] Un evento con `borrador: true` no aparece en el sitio publicado.
-- [ ] El formulario enviado desde el deploy aparece en Netlify Forms y redirige
-      a `/gracias/`.
-- [ ] La página 404 propia se sirve para rutas inexistentes.
-- [ ] `robots.txt` bloquea `/admin/` y no hay páginas de prueba indexables.
+- [ ] Las imágenes de evento apuntan a `cdn.sanity.io` y pesan menos que el original.
+- [ ] Publicar un evento en el Studio se ve en la web en ≤ 60 s sin nuevo deploy.
+- [ ] Un evento con `borrador` activo no aparece ni en la agenda ni por URL directa.
+- [ ] Una URL de evento inexistente devuelve la 404 propia con estado 404.
+- [ ] `/admin` redirige al Studio.
+- [ ] El formulario enviado aparece en Netlify Forms y redirige a `/gracias/`.
+- [ ] `robots.txt` bloquea `/admin/`.
 - [ ] El sitio es público (Edge Access desactivado) y se abre desde el móvil.
-- [ ] El formulario `contacto` aparece en Netlify → Forms tras el deploy.
 
 ---
 
-## Si algo falla en el despliegue
+## Si algo falla
 
-### Todo el sitio devuelve 401 o pide login
+### `Falta SANITY_PROJECT_ID`
 
-No es el código: es **Netlify Edge Access**. La URL responde `401` y redirige a
-`app.netlify.com/edge-access`. Desactívalo en Netlify → **Site configuration →
-Access & security → Visitor access** (protección por contraseña o Edge Access).
-Mientras esté activo, los móviles y cualquier visitante externo no pueden
-entrar, y el POST del formulario también queda bloqueado.
+La variable no está en `.env` (local) o en Netlify. Después de añadirla en
+Netlify, lanza **Deploys → Trigger deploy → Clear cache and deploy site** para
+que la función la reciba.
 
-### `/admin` devuelve 404
+### `/eventos` devuelve 500
 
-1. Confirma que el deploy es el último commit y que el build generó
-   `dist/admin/index.html`.
-2. Entra con barra final, `/admin/`; `netlify.toml` redirige `/admin`.
-3. Aunque la página cargue, el login no funciona hasta desplegar el proxy OAuth
-   y poner su URL en `base_url`.
-4. Edge Access también protege `/admin/`: desactívalo para probar.
+Suele ser el dataset: comprueba que existe, que se llama como
+`SANITY_DATASET` y que es público. Revisa también el log de la función en
+Netlify → **Functions**. El proyecto y el dataset se pueden consultar en
+`sanity.io/manage`.
+
+### `/admin` da 404
+
+La redirección apunta a `https://academia-la-clave.sanity.studio`. Si al
+desplegar el Studio elegiste otro subdominio, cámbialo en `netlify.toml`.
+
+### Un cambio no aparece
+
+La caché del CDN dura 60 s. Comprueba la cabecera `Netlify-CDN-Cache-Control`
+en la respuesta y espera ese minuto. Si el evento es un borrador, no aparecerá.
 
 ### El formulario devuelve 404
 
-`/gracias/` existe (`src/pages/gracias.astro` genera `dist/gracias/index.html`),
-así que el 404 suele venir de Netlify Forms, no de la ruta:
-
-- Netlify → **Forms**: si no aparece `contacto`, activa **Form detection** en
-  Site configuration → Forms y lanza **Deploys → Trigger deploy → Clear cache
-  and deploy site**.
-- Comprueba que el formulario está en el HTML desplegado de `/contacto/`.
-- No lo pruebes con `npm run dev`: ahí el POST siempre devuelve 404.
-- Con Edge Access activo, el POST también puede fallar.
+- Confirma que `contacto` aparece en **Netlify → Forms**; si no, activa **Form
+  detection** y redespliega sin caché.
+- No lo pruebes con `npm run dev`: ahí el POST no tiene backend.
+- Con Edge Access activo, el POST también falla.
 
 ---
 
 ## Flujo de Git
 
-El repositorio usa `main` como rama desplegable:
+El repositorio versiona **código y configuración**, no contenido:
 
 ```bash
-git switch -c contenido/agenda-primavera
+git switch -c funcionalidad/agenda-por-categoria
 # cambios
-git add -A && git commit -m "contenido: añade la agenda de primavera"
-git push -u origin contenido/agenda-primavera
+git add -A && git commit -m "feat: filtra la agenda por categoría"
+git push -u origin funcionalidad/agenda-por-categoria
 ```
 
-Los borradores del flujo editorial de Decap crean ramas `cms/...` con sus
-propios pull requests. Conviene revisar los PRs antes de publicar: un error de
-fecha o una imagen sin `alt` se detecta ahí, no en producción.
+Los cambios de contenido no pasan por PRs: quedan registrados en el historial
+de documentos de Sanity (History). Para una revisión editorial formal, el plan
+gratuito no incluye *Content Releases* ni roles de editor.
 
 ---
 
 ## Limitaciones conocidas (y siguientes pasos)
 
-- **Próximos vs. pasados se calcula en el build.** Sin un rebuild, un evento
-  sigue apareciendo como próximo después de su fecha. Netlify reconstruye al
-  publicar en Decap; si la agenda debe actualizarse sola, añade un *build hook*
-  programado (por ejemplo, una vez al día).
-- **Sin buscador, filtros ni paginación.** Con siete eventos de muestra no hace
-  falta; al crecer, valdría la pena filtrar por categoría.
-- **Sin imágenes optimizadas por Astro.** Las fotos de eventos viven en
-  `public/` porque Decap debe poder subirlas; se sirven tal cual. Si el peso
-  importa, conviene un paso de optimización o un servicio de imágenes.
+- **Plan gratuito de Sanity con topes duros**: 2 datasets públicos, 10 000
+  documentos, 100 GB de assets, 1 M peticiones CDN/mes y 250 k de API/mes. Al
+  superar peticiones, la API pública se bloquea. Para esta agenda sobra.
+- **Solo roles Admin y Viewer** en el plan gratuito: todos los editores pueden
+  borrar contenido. Si hace falta un rol Editor, hay que pasar a Growth.
+- **Dependencia de un tercero.** El contenido es exportable con
+  `npx sanity dataset export production backup.tar.gz`; guarda una copia antes
+  de cambios grandes.
+- **Caché de 60 s**: es el precio de no reconstruir. Se puede bajar `s-maxage`
+  en `src/middleware.ts`, a costa de más invocaciones de función.
+- **Sin buscador, filtros ni paginación.** Con ocho eventos no hace falta.
+- **Sin vista previa de borradores.** El evento debe publicarse para verse.
 - **Datos ficticios.** Correos en `.example`, teléfono inventado y fotos de
   Unsplash; sustitúyelos antes de usar la plantilla con un cliente real.
-- **Sin analítica, sitemap ni RSS.** Son independientes del objetivo de
-  entrenamiento y se añaden cuando el despliegue base esté validado.
+- **Sin analítica, sitemap ni RSS.** Independientes del objetivo de
+  entrenamiento.
